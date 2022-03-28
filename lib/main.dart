@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_getx_video_player/home_page.dart';
 import 'package:flutter_getx_video_player/video_info.dart';
 import 'package:get/get.dart';
 

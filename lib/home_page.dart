@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_getx_video_player/video_info.dart';
+import 'package:get/get.dart';
 import 'colors.dart' as color;
 
 class HomePage extends StatefulWidget {
@@ -12,16 +14,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List info = [];
-  _initData() {
-    DefaultAssetBundle.of(context).loadString("json/info.json").then((value) {
-      info = json.decode(value);
+  _initData() async {
+    await DefaultAssetBundle.of(context)
+        .loadString("json/info.json")
+        .then((value) {
+      setState(() {
+        info = json.decode(value);
+      });
+      ;
     });
   }
 
   @override
   void initState() {
-    super.initState();
     _initData();
+    super.initState();
   }
 
   @override
@@ -83,11 +90,16 @@ class _HomePageState extends State<HomePage> {
                       fontWeight: FontWeight.w600),
                 ),
                 Expanded(child: Container()),
-                Text(
-                  "Details",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: color.AppColor.homePageDetail,
+                InkWell(
+                  onTap: () {
+                    Get.to(() => VideoInfo());
+                  },
+                  child: Text(
+                    "Details",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: color.AppColor.homePageDetail,
+                    ),
                   ),
                 ),
                 Icon(
@@ -274,44 +286,37 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ),
+            //Expanded here
             Expanded(
-              child: OverflowBox(
-                maxWidth: MediaQuery.of(context).size.width,
-                child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: GridView.builder(
-                    itemCount: info.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 4.0,
-                            mainAxisSpacing: 4.0),
-                    itemBuilder: (BuildContext context, index) {
-                      return Card(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              info[index]['img'],
-                              scale: 1.1,
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Text(
-                              info[index]['title'],
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: color.AppColor.homePageDetail,
-                              ),
-                            ),
-                          ],
+              child: GridView.builder(
+                itemCount: info.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 4.0,
+                    mainAxisSpacing: 4.0),
+                itemBuilder: (BuildContext context, index) {
+                  return Card(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          info[index]['img'],
+                          scale: 1.1,
                         ),
-                      );
-                    },
-                  ),
-                ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          info[index]['title'],
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: color.AppColor.homePageDetail,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ],
