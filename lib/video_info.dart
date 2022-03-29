@@ -1,7 +1,10 @@
+// ignore_for_file: prefer_is_empty
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:video_player/video_player.dart';
 import 'colors.dart' as color;
 
 class VideoInfo extends StatefulWidget {
@@ -13,6 +16,11 @@ class VideoInfo extends StatefulWidget {
 
 class _VideoInfoState extends State<VideoInfo> {
   List videoInfo = [];
+  bool _playArea = false;
+  VideoPlayerController? _controller;
+  bool _isPlaying = false;
+  bool _dispose = false;
+  int _isPlayingIndex = -1;
 
   _initData() async {
     await DefaultAssetBundle.of(context)
@@ -31,140 +39,199 @@ class _VideoInfoState extends State<VideoInfo> {
   }
 
   @override
+  void dispose() {
+    _dispose = true;
+    _controller?.pause();
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [
-            color.AppColor.gradientFirst.withOpacity(0.9),
-            color.AppColor.gradientSecond,
-          ], begin: const FractionalOffset(0.0, 0.4), end: Alignment.topRight),
-        ),
+        decoration: _playArea == false
+            ? BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [
+                      color.AppColor.gradientFirst.withOpacity(0.9),
+                      color.AppColor.gradientSecond,
+                    ],
+                    begin: const FractionalOffset(0.0, 0.4),
+                    end: Alignment.topRight),
+              )
+            : BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [
+                      color.AppColor.gradientSecond.withOpacity(0.9),
+                      color.AppColor.gradientSecond,
+                    ],
+                    begin: const FractionalOffset(0.0, 0.4),
+                    end: Alignment.topRight),
+              ),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.only(top: 70, left: 30, right: 30),
-              width: MediaQuery.of(context).size.width,
-              height: 270,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          Get.back();
-                        },
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          size: 20,
-                          color: color.AppColor.secondPageIconColor,
-                        ),
-                      ),
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: color.AppColor.secondPageIconColor,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Text(
-                    "Legs Toning",
-                    style: TextStyle(
-                        color: color.AppColor.secondPageTitleColor,
-                        fontSize: 20),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "and Glutes Workout",
-                    style: TextStyle(
-                        color: color.AppColor.secondPageTitleColor,
-                        fontSize: 20),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.only(left: 5, right: 5),
-                        width: 80,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                              colors: [
-                                color.AppColor
-                                    .secondPageContainerGradient1stColor,
-                                color.AppColor
-                                    .secondPageContainerGradient2ndColor
-                              ],
-                              begin: Alignment.bottomLeft,
-                              end: Alignment.topRight),
-                        ),
-                        child: Row(
+            _playArea == false
+                ? Container(
+                    padding:
+                        const EdgeInsets.only(top: 70, left: 30, right: 30),
+                    width: MediaQuery.of(context).size.width,
+                    height: 270,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            InkWell(
+                              onTap: () {
+                                Get.back();
+                              },
+                              child: Icon(
+                                Icons.arrow_back_ios,
+                                size: 20,
+                                color: color.AppColor.secondPageIconColor,
+                              ),
+                            ),
                             Icon(
                               Icons.info_outline,
                               size: 20,
                               color: color.AppColor.secondPageIconColor,
                             ),
-                            Text(
-                              "60 min",
-                              style: TextStyle(
-                                  color:
-                                      color.AppColor.homePageContainerTextSmall,
-                                  fontSize: 14),
-                            ),
                           ],
                         ),
-                      ),
-                      Container(
-                        width: 200,
-                        height: 30,
-                        padding: const EdgeInsets.only(left: 5, right: 8),
-                        margin: const EdgeInsets.only(right: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                              colors: [
-                                color.AppColor
-                                    .secondPageContainerGradient1stColor,
-                                color.AppColor
-                                    .secondPageContainerGradient2ndColor
-                              ],
-                              begin: Alignment.bottomLeft,
-                              end: Alignment.topRight),
+                        const SizedBox(
+                          height: 30,
                         ),
-                        child: Row(
+                        Text(
+                          "Legs Toning",
+                          style: TextStyle(
+                              color: color.AppColor.secondPageTitleColor,
+                              fontSize: 20),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          "and Glutes Workout",
+                          style: TextStyle(
+                              color: color.AppColor.secondPageTitleColor,
+                              fontSize: 20),
+                        ),
+                        const SizedBox(
+                          height: 40,
+                        ),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(
-                              Icons.handyman_rounded,
-                              size: 20,
-                              color: color.AppColor.secondPageIconColor,
+                            Container(
+                              padding: const EdgeInsets.only(left: 5, right: 5),
+                              width: 80,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                gradient: LinearGradient(
+                                    colors: [
+                                      color.AppColor
+                                          .secondPageContainerGradient1stColor,
+                                      color.AppColor
+                                          .secondPageContainerGradient2ndColor
+                                    ],
+                                    begin: Alignment.bottomLeft,
+                                    end: Alignment.topRight),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 20,
+                                    color: color.AppColor.secondPageIconColor,
+                                  ),
+                                  Text(
+                                    "60 min",
+                                    style: TextStyle(
+                                        color: color.AppColor
+                                            .homePageContainerTextSmall,
+                                        fontSize: 14),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Text(
-                              "Resistent band, Kettlebell",
-                              style: TextStyle(
-                                  color:
-                                      color.AppColor.homePageContainerTextSmall,
-                                  fontSize: 14),
+                            Container(
+                              width: 200,
+                              height: 30,
+                              padding: const EdgeInsets.only(left: 5, right: 8),
+                              margin: const EdgeInsets.only(right: 5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                gradient: LinearGradient(
+                                    colors: [
+                                      color.AppColor
+                                          .secondPageContainerGradient1stColor,
+                                      color.AppColor
+                                          .secondPageContainerGradient2ndColor
+                                    ],
+                                    begin: Alignment.bottomLeft,
+                                    end: Alignment.topRight),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(
+                                    Icons.handyman_rounded,
+                                    size: 20,
+                                    color: color.AppColor.secondPageIconColor,
+                                  ),
+                                  Text(
+                                    "Resistent band, Kettlebell",
+                                    style: TextStyle(
+                                        color: color.AppColor
+                                            .homePageContainerTextSmall,
+                                        fontSize: 14),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  )
+                : Container(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 100,
+                          padding: const EdgeInsets.only(
+                              top: 15, left: 30, right: 30),
+                          child: Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  //debugPrint("tapped");
+                                },
+                                child: Icon(
+                                  Icons.arrow_back_ios,
+                                  size: 20,
+                                  color: color.AppColor.secondPageIconColor,
+                                ),
+                              ),
+                              Expanded(child: Container()),
+                              Icon(
+                                Icons.info_outline,
+                                size: 20,
+                                color: color.AppColor.secondPageIconColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _playView(context),
+                        _controlView(context),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
             Expanded(
               child: Container(
                 width: MediaQuery.of(context).size.width,
@@ -227,9 +294,15 @@ class _VideoInfoState extends State<VideoInfo> {
                         itemBuilder: (_, int index) {
                           return GestureDetector(
                               onTap: () {
-                                debugPrint(index.toString());
+                                _onTapVideo(index);
+                                //debugPrint(index.toString());
+                                setState(() {
+                                  if (_playArea == false) {
+                                    _playArea = true;
+                                  }
+                                });
                               },
-                              child: _listView(index));
+                              child: _showCards(index));
                         },
                       ),
                     )
@@ -243,7 +316,148 @@ class _VideoInfoState extends State<VideoInfo> {
     );
   }
 
-  _listView(int index) {
+  var _onUpdateControllerTime;
+  _onControllerUpdate() {
+    if (_dispose) {
+      return;
+    }
+
+    _onUpdateControllerTime = 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (_onUpdateControllerTime > now) {
+      return;
+    }
+
+    _onUpdateControllerTime = now + 500;
+    if (_controller == null) {
+      debugPrint("controller is null");
+      return;
+    }
+    if (!_controller!.value.isInitialized) {
+      debugPrint("controller can not be initialized");
+      return;
+    }
+    final playing = _controller!.value.isPlaying;
+    _isPlaying = playing;
+  }
+
+  _onTapVideo(int index) {
+    final controller =
+        VideoPlayerController.network(videoInfo[index]["videoUrl"]);
+    final old = _controller;
+    _controller = controller;
+    if (old != null) {
+      old.removeListener(_onControllerUpdate);
+      old.pause();
+    }
+    // _controller = VideoPlayerController.network(videoInfo[index]["videoUrl"])
+    //   ..initialize().then((_) {
+    //     _controller?.addListener(_onControllerUpdate);
+    //     setState(() {
+    //       _controller!.play();
+    //     });
+    //   });
+    setState(() {});
+    // ignore: avoid_single_cascade_in_expression_statements
+    controller
+      ..initialize().then((_) {
+        old?.dispose();
+        _isPlayingIndex = index;
+        controller.addListener(_onControllerUpdate);
+        controller.play();
+        setState(() {});
+      });
+  }
+
+  Widget _controlView(BuildContext context) {
+    return Container(
+      //height: 120,
+      width: MediaQuery.of(context).size.width,
+      color: color.AppColor.gradientSecond,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton(
+            onPressed: () {
+              final index = _isPlayingIndex - 1;
+
+              if (index >= 0 && videoInfo.length >= 0) {
+                _onTapVideo(index);
+              } else {
+                Get.snackbar("Video List", "",
+                    snackPosition: SnackPosition.BOTTOM,
+                    icon: const Icon(
+                      Icons.face,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                    backgroundColor: color.AppColor.gradientSecond,
+                    colorText: Colors.white,
+                    messageText: const Text(
+                      "No more video in the list",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ));
+              }
+            },
+            child: const Icon(
+              Icons.fast_rewind,
+              size: 36,
+              color: Colors.white,
+            ),
+          ),
+          TextButton(
+              onPressed: () async {
+                if (_isPlaying) {
+                  await _controller?.pause();
+                  setState(() {
+                    _isPlaying = false;
+                  });
+                } else {
+                  await _controller?.play();
+                  setState(() {
+                    _isPlaying = true;
+                  });
+                }
+              },
+              child: Icon(
+                _isPlaying ? Icons.pause : Icons.play_arrow,
+                size: 36,
+                color: Colors.white,
+              )),
+          TextButton(
+            onPressed: () {
+              final index = _isPlayingIndex + 1;
+
+              if (index <= videoInfo.length - 1) {
+                _onTapVideo(index);
+              } else {
+                Get.snackbar("Video List", "",
+                    snackPosition: SnackPosition.BOTTOM,
+                    icon: const Icon(
+                      Icons.face,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                    backgroundColor: color.AppColor.gradientSecond,
+                    colorText: Colors.white,
+                    messageText: const Text(
+                      "You have finished washing all the videos, Congrats !",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ));
+              }
+            },
+            child: const Icon(
+              Icons.fast_forward,
+              size: 36,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _showCards(int index) {
     return Container(
       height: 135,
       child: Column(
@@ -338,5 +552,26 @@ class _VideoInfoState extends State<VideoInfo> {
         ],
       ),
     );
+  }
+
+  Widget _playView(BuildContext context) {
+    if (_controller != null && _controller!.value.isInitialized) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: VideoPlayer(_controller!),
+      );
+    } else {
+      return const AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Center(
+            child: Text(
+          "Preparing...",
+          style: TextStyle(
+            fontSize: 20,
+            color: Colors.white60,
+          ),
+        )),
+      );
+    }
   }
 }
